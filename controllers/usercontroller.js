@@ -31,7 +31,25 @@ const controlls = {
     } catch (error) {
       res.status(500).send(error.message);
     }
+  },
+  login:async function(req, res) {
+    try {
+        const user = await User.findOne({email:req.body.email});
+
+    if(!user){
+        res.status(400).send("Email ou senha inválido")
+    }
+    const password = await bcrypt.compare(req.body.senha,user.senha)
+    if(!password){
+        res.status(400).send("Email ou senha inválido")
+    }
+    res.send("Usuário Logado")
+    } catch (error) {
+        res.status(500).send(error.message)
+    }
+    
   }
+
 }
 
 module.exports = controlls
