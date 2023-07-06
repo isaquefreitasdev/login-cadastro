@@ -6,6 +6,8 @@ const routes = require('./routes/routes');
 
 mongoose.connect(process.env.URL_DB).then(()=>{
     console.log('Connect')
+}).catch((error)=>{
+    console.log("Error")
 })
 
 
