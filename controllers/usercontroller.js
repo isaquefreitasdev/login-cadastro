@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require('express');
 const app = express();
 const User = require('../models/userModel')
 const bcrypt = require("bcryptjs");
-
+const jwt = require("jsonwebtoken")
 
 const controlls = {
     register:async function (req, res) {
@@ -43,11 +44,23 @@ const controlls = {
     if(!password){
         res.status(400).send("Email ou senha inválido")
     }
+    const token = jwt.sign({_id:user._id},process.env.SECRET_KEY)
+    res.header('authorization-token',token)
     res.send("Usuário Logado")
     } catch (error) {
         res.status(500).send(error.message)
     }
     
+  },
+  dashboard:function(req, res){
+    try {
+      res.status(200).send("dashboard")
+
+      
+    } catch (error) {
+      res.status(403).send(error.message)
+      
+    }
   }
 
 }
