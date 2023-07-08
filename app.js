@@ -16,6 +16,4 @@ const app = express();
 app.use('/',routes)
 
 
-app.listen(port,()=>{
-    console.log('Listen on port 3000');
-})
+module.exports = app;

@@ -1,31 +1,36 @@
 require("dotenv").config();
-const express = require('express');
+const express = require("express");
 const app = express();
-const User = require('../models/userModel')
+const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const validate = require("./validation");
 
 const controlls = {
-    register:async function (req, res) {
+  register: async function (req, res) {
+    const { error } = validate.registerValidate(req.body);
+    if (error) {
+      return res.status(400).send(error.message);
+    }
     try {
       const userExist = await User.findOne({ email: req.body.email });
       if (userExist) {
         return res.status(400).send("Usuário existente");
-      } else {
-        const userRegister = new User({
-          nome: req.body.nome,
-          sobrenome: req.body.sobrenome,
-          email: req.body.email,
-          senha: bcrypt.hashSync(req.body.senha),
-        });
-        const userSave = await userRegister.save();
-        res.status(200).send("Usuário salvo");
       }
+      const userRegister = new User({
+        nome: req.body.nome,
+        sobrenome: req.body.sobrenome,
+        email: req.body.email,
+        senha: bcrypt.hashSync(req.body.senha),
+      });
+      const userSave = await userRegister.save();
+      return res.status(200).send("Usuário salvo");
     } catch (e) {
-      res.status(500).send(e.message);
+      return res.status(500).send(e.message);
     }
   },
-  getAll:async function (req, res) {
+  
+  getAll: async function (req, res) {
     try {
       let users = await User.find();
       res.send(users);
@@ -33,36 +38,40 @@ const controlls = {
       res.status(500).send(error.message);
     }
   },
-  login:async function(req, res) {
+  login: async function (req, res) {
+    const { error } = validate.loginValidate(req.body);
+    if (error) {
+      return res.status(400).send(error.message);
+    }
     try {
-        const user = await User.findOne({email:req.body.email});
+      const user = await User.findOne({ email: req.body.email });
 
-    if(!user){
-        res.status(400).send("Email ou senha inválido")
-    }
-    const password = await bcrypt.compare(req.body.senha,user.senha)
-    if(!password){
-        res.status(400).send("Email ou senha inválido")
-    }
-    const token = jwt.sign({_id:user._id},process.env.SECRET_KEY)
-    res.header('authorization-token',token)
-    res.send("Usuário Logado")
+      if (!user) {
+        return res.status(400).send("Email ou senha inválido");
+      }
+
+      const password = await bcrypt.compare(req.body.senha, user.senha);
+      if (!password) {
+        return res.status(400).send("Email ou senha inválido");
+      }
+
+      const token = jwt.sign({ _id: user._id }, process.env.SECRET_KEY);
+      return res
+        .header("authorization-token", token)
+        .status(200)
+        .send("Usuário Logado");
     } catch (error) {
-        res.status(500).send(error.message)
+      return res.status(500).send(error.message);
     }
-    
   },
-  dashboard:function(req, res){
+
+  dashboard: function (req, res) {
     try {
-      res.status(200).send("dashboard")
-
-      
+      res.status(200).send("dashboard");
     } catch (error) {
-      res.status(403).send(error.message)
-      
+      res.status(403).send(error.message);
     }
-  }
+  },
+};
 
-}
-
-module.exports = controlls
+module.exports = controlls;
